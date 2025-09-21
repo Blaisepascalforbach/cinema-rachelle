@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L'Invitation au Cinéma de Rachelle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+        /* Styles pour le glisser-déposer */
+        .draggable {
+            cursor: grab;
+            user-select: none;
+        }
+        .drop-target {
+            border: 2px dashed #ccc;
+            min-height: 50px;
+            transition: background-color 0.3s, border-color 0.3s;
+        }
+        .drop-target.drag-over {
+            background-color: #e0f2fe;
+            border-color: #0ea5e9;
+        }
+        .drop-target.filled {
+            border-style: solid;
+            border-color: #22c55e;
+            background-color: #dcfce7;
+        }
+    </style>
+</head>
+<body class="bg-slate-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="w-full max-w-2xl bg-white rounded-2xl shadow-lg p-6 md:p-8 relative">
+
+        <!-- ===== CONTENEUR DES ÉCRANS ===== -->
+        <div id="app-container">
+
+            <!-- Module 0: Introduction -->
+            <div id="screen-0" class="screen active text-center">
+                <h1 class="text-3xl font-bold text-slate-800 mb-4">On aide Rachelle !</h1>
+                <img src="https://placehold.co/600x300/e2e8f0/475569?text=Cin%C3%A9ma" alt="Façade d'un cinéma" class="rounded-lg mx-auto mb-6 w-full object-cover">
+                <p class="text-slate-600 mb-6">Voici Rachelle. Elle veut inviter ses amis au cinéma. On va l'aider à calculer combien d'amis elle peut inviter. Tu es prêt ?</p>
+                <button onclick="changeScreen(1)" class="w-full bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">C'est parti !</button>
+            </div>
+
+            <!-- Module 1: Comprendre la Situation -->
+            <div id="screen-1" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 1 : Le Budget 💰</h2>
+                <p class="text-slate-600 mb-6">Pour commencer, combien d'argent les parents de Rachelle lui donnent ? Ses parents lui offrent 80 euros.</p>
+                <div class="flex flex-col gap-2">
+                    <input id="budget-input" type="number" placeholder="Tape le nombre ici" class="p-3 border rounded-lg text-center text-xl">
+                    <p id="budget-feedback" class="text-sm h-5"></p>
+                    <button onclick="checkBudget()" class="w-full bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">Valider</button>
+                </div>
+            </div>
+
+            <div id="screen-2" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 1 : Les Dépenses - Popcorn 🍿</h2>
+                <p class="text-slate-600 mb-6">Rachelle achète 4 grands paquets de popcorn. Un paquet coûte 8 euros.</p>
+                <div id="popcorn-step1">
+                    <p class="font-semibold mb-4">Quelle opération doit-on faire pour trouver le prix total du popcorn ?</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button onclick="checkPopcornOp('add')" class="text-left p-3 border rounded-lg hover:bg-slate-50">4 + 8</button>
+                        <button onclick="checkPopcornOp('sub')" class="text-left p-3 border rounded-lg hover:bg-slate-50">8 - 4</button>
+                        <button onclick="checkPopcornOp('mul')" class="text-left p-3 border rounded-lg hover:bg-slate-50">4 x 8</button>
+                    </div>
+                     <p id="popcorn-op-feedback" class="text-sm h-5 mt-2"></p>
+                </div>
+                <div id="popcorn-step2" class="hidden mt-6">
+                    <p class="font-semibold mb-4">Très bien ! Et combien ça fait, 4 x 8 ?</p>
+                    <input id="popcorn-result" type="number" placeholder="Tape le résultat" class="p-3 border rounded-lg text-center text-xl w-full">
+                     <p id="popcorn-result-feedback" class="text-sm h-5 mt-2"></p>
+                    <button onclick="checkPopcornResult()" class="w-full mt-2 bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">Valider</button>
+                </div>
+            </div>
+            
+            <div id="screen-3" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 1 : L'Argent Restant 🎟️</h2>
+                 <p class="text-slate-600 mb-6">Rachelle avait 80 €. Elle dépense 32 € pour le popcorn. Combien d'argent reste-t-il pour acheter les tickets de cinéma ?</p>
+                 <div class="flex items-center justify-center gap-2 bg-slate-100 p-4 rounded-lg">
+                    <input value="80" disabled class="p-3 w-20 border rounded-lg text-center text-xl bg-white">
+                    <span class="text-2xl font-bold">-</span>
+                    <input value="32" disabled class="p-3 w-20 border rounded-lg text-center text-xl bg-white">
+                    <span class="text-2xl font-bold">=</span>
+                    <input id="remaining-input" type="number" placeholder="?" class="p-3 w-24 border rounded-lg text-center text-xl">
+                 </div>
+                 <p id="remaining-feedback" class="text-sm h-5 mt-2 text-center"></p>
+                 <button onclick="checkRemaining()" class="w-full mt-4 bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">Valider</button>
+            </div>
+
+            <!-- Module 2: Vers l'Équation -->
+            <div id="screen-4" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 2 : Le Nombre Mystère</h2>
+                <p class="text-slate-600 mb-4">Maintenant, on a un problème. On ne sait pas combien de tickets on peut acheter. C'est notre <strong>inconnue</strong>.</p>
+                <div class="flex items-center justify-center text-6xl font-bold h-24 my-4">
+                    <span id="mystery-char" class="transition-all duration-500">?</span>
+                </div>
+                <p class="text-slate-600 mb-6 text-center">En maths, quand on ne connaît pas un nombre, on utilise une lettre. Souvent, on utilise la lettre <strong class="text-sky-500">x</strong>.</p>
+                <p class="text-center bg-sky-100 text-sky-800 p-3 rounded-lg font-semibold">x = le nombre de tickets de cinéma</p>
+                <button onclick="changeScreen(5)" class="w-full mt-6 bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">J'ai compris</button>
+            </div>
+            
+            <div id="screen-5" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 2 : Construire l'Équation</h2>
+                <p class="text-slate-600 mb-6">Un ticket de cinéma coûte 6 €. Le prix pour x tickets est donc <strong>6x</strong>. Mettons tout ensemble !</p>
+                <div class="text-center p-4 bg-slate-100 rounded-lg text-slate-700 font-semibold mb-6">
+                    (Le prix des tickets) + (Le prix du popcorn) = (L'argent total)
+                </div>
+                <div class="flex items-center justify-center gap-2 text-xl font-bold mb-8">
+                    <div id="drop-1" class="drop-target w-1/3 rounded-lg p-3 text-center"></div>
+                    <span>+</span>
+                    <div id="drop-2" class="drop-target w-1/3 rounded-lg p-3 text-center"></div>
+                    <span>=</span>
+                    <div id="drop-3" class="drop-target w-1/3 rounded-lg p-3 text-center"></div>
+                </div>
+                <div id="draggable-container" class="flex items-center justify-center gap-4">
+                    <div id="drag-6x" draggable="true" data-value="6x" class="draggable bg-sky-200 text-sky-800 font-bold p-3 rounded-lg">6x</div>
+                    <div id="drag-32" draggable="true" data-value="32" class="draggable bg-amber-200 text-amber-800 font-bold p-3 rounded-lg">32</div>
+                    <div id="drag-80" draggable="true" data-value="80" class="draggable bg-emerald-200 text-emerald-800 font-bold p-3 rounded-lg">80</div>
+                </div>
+                 <p id="equation-feedback" class="text-sm h-5 mt-4 text-center font-semibold"></p>
+            </div>
+
+             <!-- Module 3: La Résolution -->
+            <div id="screen-6" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 3 : Isoler l'Inconnue (1/2)</h2>
+                <p class="text-slate-600 mb-4">Notre but est de trouver <strong>x</strong>. Pour ça, <strong>x</strong> doit être seul. On doit d'abord enlever le <strong>+ 32</strong>.</p>
+                <!-- Représentation de la balance -->
+                <div class="flex items-center justify-center gap-4 my-6 p-4 bg-slate-50 rounded-lg">
+                    <div id="balance-left-1" class="w-1/2 text-center font-bold text-xl p-3 bg-sky-100 rounded">6x + 32</div>
+                    <div class="text-2xl font-bold text-slate-400">=</div>
+                    <div id="balance-right-1" class="w-1/2 text-center font-bold text-xl p-3 bg-emerald-100 rounded">80</div>
+                </div>
+                <p class="font-semibold mb-4">Quelle est l'opération inverse de <strong>+ 32</strong> ?</p>
+                <div class="grid grid-cols-1 gap-3">
+                    <button onclick="checkInverseOp1('add')" class="text-left p-3 border rounded-lg hover:bg-slate-50">+ 32</button>
+                    <button onclick="checkInverseOp1('sub')" class="text-left p-3 border rounded-lg hover:bg-slate-50">- 32</button>
+                    <button onclick="checkInverseOp1('mul')" class="text-left p-3 border rounded-lg hover:bg-slate-50">x 32</button>
+                </div>
+                <p id="inverse-op1-feedback" class="text-sm h-5 mt-2"></p>
+            </div>
+
+            <div id="screen-7" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 3 : Isoler l'Inconnue (2/2)</h2>
+                 <p class="text-slate-600 mb-4">On est presque à la fin ! <strong>6x</strong> veut dire <strong>6 multiplié par x</strong>.</p>
+                <div class="flex items-center justify-center gap-4 my-6 p-4 bg-slate-50 rounded-lg">
+                    <div class="w-1/2 text-center font-bold text-xl p-3 bg-sky-100 rounded">6x</div>
+                    <div class="text-2xl font-bold text-slate-400">=</div>
+                    <div class="w-1/2 text-center font-bold text-xl p-3 bg-emerald-100 rounded">48</div>
+                </div>
+                 <p class="font-semibold mb-4">Quelle est l'opération inverse de <strong>multiplié par 6</strong> ?</p>
+                 <div class="grid grid-cols-1 gap-3">
+                    <button onclick="checkInverseOp2('sub')" class="text-left p-3 border rounded-lg hover:bg-slate-50">- 6</button>
+                    <button onclick="checkInverseOp2('add')" class="text-left p-3 border rounded-lg hover:bg-slate-50">+ 6</button>
+                    <button onclick="checkInverseOp2('div')" class="text-left p-3 border rounded-lg hover:bg-slate-50">divisé par 6</button>
+                </div>
+                <p id="inverse-op2-feedback" class="text-sm h-5 mt-2"></p>
+            </div>
+
+            <!-- Module 4: Interprétation et Conclusion -->
+            <div id="screen-8" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 4 : Le Sens du Résultat</h2>
+                <p class="text-slate-600 mb-6">On a trouvé <code class="bg-slate-200 px-2 py-1 rounded">x = 8</code>. Au début, on a dit que <strong>x</strong> était le <strong>nombre de tickets de cinéma</strong>. Alors, qu'est-ce que ça veut dire ?</p>
+                <div class="flex flex-col items-center gap-2">
+                    <label for="meaning-input" class="text-slate-700">Rachelle peut acheter</label>
+                    <div class="flex items-center gap-2">
+                         <input id="meaning-input" type="number" class="p-2 border rounded-lg text-center text-lg w-20">
+                         <span>tickets de cinéma.</span>
+                    </div>
+                    <p id="meaning-feedback" class="text-sm h-5 mt-2"></p>
+                    <button onclick="checkMeaning()" class="w-full mt-4 bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">Valider</button>
+                </div>
+            </div>
+
+            <div id="screen-9" class="screen">
+                <h2 class="text-2xl font-bold text-slate-800 mb-2">Module 4 : La Réponse Finale</h2>
+                <p class="text-slate-600 mb-6">Super ! Rachelle peut acheter 8 tickets. Si Rachelle achète un ticket pour elle, combien d'amis peut-elle inviter au maximum ?</p>
+                <div class="flex flex-col gap-2">
+                    <input id="final-answer-input" type="number" placeholder="Nombre d'amis" class="p-3 border rounded-lg text-center text-xl">
+                    <p id="final-answer-feedback" class="text-sm h-5"></p>
+                    <button onclick="checkFinalAnswer()" class="w-full bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">Valider</button>
+                </div>
+            </div>
+
+            <div id="screen-10" class="screen text-center">
+                <h1 class="text-3xl font-bold text-emerald-600 mb-4">Mission accomplie ! 🎉</h1>
+                <p class="text-slate-600 mb-6">Félicitations ! Tu as résolu le problème de Rachelle. Voici ce que nous avons fait :</p>
+                <ul class="text-left space-y-3 bg-slate-50 p-6 rounded-lg">
+                    <li class="flex items-start gap-3">
+                        <span class="text-emerald-500">✔</span>
+                        <div><strong>Comprendre :</strong> On a trouvé le budget (80€), le coût du popcorn (32€) et l'argent restant (48€).</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-emerald-500">✔</span>
+                        <div><strong>Traduire :</strong> On a transformé le problème en équation : <code class="font-bold text-sky-700">6x + 32 = 80</code>.</div>
+                    </li>
+                    <li class="flex items-start gap-3">
+                        <span class="text-emerald-500">✔</span>
+                        <div><strong>Résoudre :</strong> On a trouvé la solution de l'équation : <code class="font-bold text-sky-700">x = 8</code>.</div>
+                    </li>
+                     <li class="flex items-start gap-3">
+                        <span class="text-emerald-500">✔</span>
+                        <div><strong>Répondre :</strong> On a répondu à la question : Rachelle peut inviter <strong>7 amis</strong>.</div>
+                    </li>
+                </ul>
+                <button onclick="changeScreen(0)" class="w-full mt-8 bg-slate-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-slate-700 transition-colors">Recommencer</button>
+            </div>
+
+        </div>
+
+        <!-- Élément Transversal : Boîte à Outils "Vocabulaire" -->
+        <div class="absolute top-4 right-4 flex gap-2">
+            <button onclick="toggleVocab(true)" class="bg-slate-200 text-slate-700 rounded-full h-10 w-10 flex items-center justify-center text-2xl hover:bg-slate-300 transition-colors" title="Vocabulaire">📖</button>
+            <button onclick="toggleAssistant(true)" class="bg-sky-200 text-sky-700 rounded-full h-10 w-10 flex items-center justify-center text-2xl hover:bg-sky-300 transition-colors" title="Assistant Pédagogique">🤖</button>
+        </div>
+    </div>
+
+    <!-- Modal Vocabulaire -->
+    <div id="vocab-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative">
+            <button onclick="toggleVocab(false)" class="absolute top-3 right-3 text-slate-500 hover:text-slate-800 text-2xl">&times;</button>
+            <h2 class="text-2xl font-bold text-slate-800 mb-6">Boîte à Outils : Vocabulaire</h2>
+            <ul class="space-y-4">
+                <li><strong class="text-sky-600">Budget 💰</strong> : L'argent total disponible.</li>
+                <li><strong class="text-sky-600">Dépense</strong> : L'argent qu'on utilise pour acheter quelque chose.</li>
+                <li><strong class="text-sky-600">Inconnue (x) ?</strong> : Le nombre qu'on cherche.</li>
+                <li><strong class="text-sky-600">Équation</strong> : Un calcul avec le signe = qui doit rester équilibré.</li>
+                <li><strong class="text-sky-600">Résoudre</strong> : Trouver la valeur de l'inconnue x.</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modal Assistant Pédagogique -->
+    <div id="assistant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-lg p-6 relative flex flex-col" style="height: 80vh; max-height: 600px;">
+            <div class="flex-shrink-0">
+                <button onclick="toggleAssistant(false)" class="absolute top-3 right-3 text-slate-500 hover:text-slate-800 text-2xl">&times;</button>
+                 <div class="flex items-center justify-between mb-4">
+                     <h2 class="text-2xl font-bold text-slate-800">Assistant Bilingue</h2>
+                     <select id="language-select" class="p-1 border rounded-lg text-sm bg-slate-50">
+                        <option value="English">English</option>
+                        <option value="Español">Español</option>
+                        <option value="Deutsch">Deutsch</option>
+                        <option value="العربية">العربية</option>
+                        <option value="Português">Português</option>
+                        <option value="Русский">Русский</option>
+                     </select>
+                </div>
+            </div>
+            <div id="chat-log" class="flex-grow overflow-y-auto bg-slate-50 p-3 rounded-lg space-y-4">
+                <!-- Messages du chat -->
+                <div class="p-3 bg-sky-100 text-sky-800 rounded-lg max-w-xs">
+                    <p>Bonjour ! Pose-moi une question sur l'exercice. Je peux te répondre en plusieurs langues.</p>
+                </div>
+            </div>
+            <div class="flex-shrink-0 mt-4 flex gap-2">
+                <input id="chat-input" type="text" placeholder="Pose ta question ici..." class="flex-grow p-3 border rounded-lg focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <button id="chat-send-btn" onclick="askAssistant()" class="bg-sky-500 text-white font-bold py-3 px-4 rounded-lg hover:bg-sky-600 transition-colors">Envoyer</button>
+            </div>
+        </div>
+    </div>
+
+
+<script>
+    let currentScreen = 0;
+    const screens = document.querySelectorAll('.screen');
+
+    function changeScreen(screenIndex) {
+        screens[currentScreen].classList.remove('active');
+        currentScreen = screenIndex;
+        screens[currentScreen].classList.add('active');
+
+        if (screenIndex === 4) {
+            const mysteryChar = document.getElementById('mystery-char');
+            setTimeout(() => {
+                mysteryChar.style.transform = 'rotateY(360deg) scale(0)';
+            }, 1000);
+            setTimeout(() => {
+                mysteryChar.textContent = 'x';
+                mysteryChar.classList.add('text-sky-500');
+                mysteryChar.style.transform = 'rotateY(0deg) scale(1)';
+            }, 1500);
+        }
+    }
+
+    // --- Module 1 ---
+    function checkBudget() {
+        const input = document.getElementById('budget-input');
+        const feedback = document.getElementById('budget-feedback');
+        if (input.value === '80') {
+            feedback.textContent = 'Super ! Rachelle a 80 € au total. 💰';
+            feedback.className = 'text-sm h-5 text-green-600';
+            setTimeout(() => changeScreen(2), 1000);
+        } else {
+            feedback.textContent = "Regarde bien la phrase : 'Ses parents lui offrent 80 euros'. Essaie encore.";
+            feedback.className = 'text-sm h-5 text-red-600';
+        }
+    }
+    
+    function checkPopcornOp(op) {
+        const feedback = document.getElementById('popcorn-op-feedback');
+        if (op === 'mul') {
+            feedback.textContent = 'Très bien !';
+            feedback.className = 'text-sm h-5 mt-2 text-green-600';
+            document.getElementById('popcorn-step1').style.opacity = '0.5';
+            document.getElementById('popcorn-step2').classList.remove('hidden');
+        } else {
+            feedback.textContent = "Essaie encore. Pour trouver le prix de 4 objets identiques, on utilise la multiplication.";
+            feedback.className = 'text-sm h-5 mt-2 text-red-600';
+        }
+    }
+
+    function checkPopcornResult() {
+        const input = document.getElementById('popcorn-result');
+        const feedback = document.getElementById('popcorn-result-feedback');
+        if (input.value === '32') {
+            feedback.textContent = 'Parfait ! Le popcorn coûte 32 €.';
+            feedback.className = 'text-sm h-5 mt-2 text-green-600';
+            setTimeout(() => changeScreen(3), 1000);
+        } else {
+            feedback.textContent = "Ce n'est pas tout à fait ça. 4 multiplié par 8, ça fait 32.";
+            feedback.className = 'text-sm h-5 mt-2 text-red-600';
+        }
+    }
+
+    function checkRemaining() {
+        const input = document.getElementById('remaining-input');
+        const feedback = document.getElementById('remaining-feedback');
+        if (input.value === '48') {
+            feedback.textContent = 'Exactement ! Il reste 48 € pour les tickets de cinéma 🎟️.';
+            feedback.className = 'text-sm h-5 mt-2 text-center text-green-600';
+            setTimeout(() => changeScreen(4), 1500);
+        } else {
+            feedback.textContent = "Calcule bien : 80 moins 32.";
+            feedback.className = 'text-sm h-5 mt-2 text-center text-red-600';
+        }
+    }
+    
+    // --- Module 2 ---
+    const draggables = document.querySelectorAll('.draggable');
+    const dropTargets = document.querySelectorAll('.drop-target');
+    const correctOrder = { 'drop-1': '6x', 'drop-2': '32', 'drop-3': '80' };
+    let filledTargets = 0;
+
+    draggables.forEach(draggable => {
+        draggable.addEventListener('dragstart', () => {
+            draggable.classList.add('opacity-50');
+        });
+        draggable.addEventListener('dragend', () => {
+            draggable.classList.remove('opacity-50');
+        });
+    });
+
+    dropTargets.forEach(target => {
+        target.addEventListener('dragover', e => {
+            e.preventDefault();
+            target.classList.add('drag-over');
+        });
+        target.addEventListener('dragleave', () => {
+            target.classList.remove('drag-over');
+        });
+        target.addEventListener('drop', e => {
+            e.preventDefault();
+            target.classList.remove('drag-over');
+            const id = e.dataTransfer.getData('text/plain');
+            const draggableElement = document.getElementById(id);
+            const value = draggableElement.dataset.value;
+
+            if (correctOrder[target.id] === value && !target.hasChildNodes()) {
+                target.appendChild(draggableElement);
+                draggableElement.setAttribute('draggable', 'false');
+                draggableElement.style.cursor = 'default';
+                target.classList.add('filled');
+                filledTargets++;
+                checkEquationCompletion();
+            }
+        });
+    });
+    
+    document.getElementById('draggable-container').addEventListener('dragstart', e => {
+        e.dataTransfer.setData('text/plain', e.target.id);
+    });
+
+    function checkEquationCompletion() {
+        const feedback = document.getElementById('equation-feedback');
+        if (filledTargets === 3) {
+            feedback.textContent = 'Bravo ! Tu as écrit une équation ! 6x + 32 = 80.';
+            feedback.className = 'text-sm h-5 mt-4 text-center font-semibold text-green-600';
+            setTimeout(() => changeScreen(6), 2000);
+        }
+    }
+    
+    // --- Module 3 ---
+    function checkInverseOp1(op) {
+        const feedback = document.getElementById('inverse-op1-feedback');
+        if (op === 'sub') {
+            feedback.textContent = 'Oui, c\'est - 32 ! On fait - 32 des deux côtés.';
+            feedback.className = 'text-sm h-5 mt-2 text-green-600';
+            const left = document.getElementById('balance-left-1');
+            const right = document.getElementById('balance-right-1');
+            left.innerHTML += ' <span class="text-red-500">- 32</span>';
+            right.innerHTML += ' <span class="text-red-500">- 32</span>';
+            setTimeout(() => {
+                left.innerHTML = '6x';
+                right.innerHTML = '48';
+                left.parentElement.classList.add('transition-all', 'duration-500', 'scale-105');
+                right.parentElement.classList.add('transition-all', 'duration-500', 'scale-105');
+            }, 1500);
+            setTimeout(() => changeScreen(7), 3000);
+        } else {
+            feedback.textContent = "Non, l'inverse de l'addition (+) c'est la soustraction (-).";
+            feedback.className = 'text-sm h-5 mt-2 text-red-600';
+        }
+    }
+    
+    function checkInverseOp2(op) {
+        const feedback = document.getElementById('inverse-op2-feedback');
+        if (op === 'div') {
+            feedback.textContent = 'C\'est ça, divisé par 6 ! On divise les deux côtés par 6.';
+            feedback.className = 'text-sm h-5 mt-2 text-green-600';
+             setTimeout(() => {
+                document.querySelector('#screen-7 .bg-sky-100').innerHTML = '<span class="text-gray-400 line-through">6</span>x / <span class="text-gray-400">6</span>';
+                document.querySelector('#screen-7 .bg-emerald-100').innerHTML = '48 / <span class="text-red-500">6</span>';
+            }, 1000);
+            setTimeout(() => {
+                document.querySelector('#screen-7 .bg-sky-100').textContent = 'x';
+                document.querySelector('#screen-7 .bg-emerald-100').textContent = '8';
+            }, 2500);
+            setTimeout(() => changeScreen(8), 3500);
+        } else {
+            feedback.textContent = "Non, l'inverse de la multiplication (x) c'est la division (/).";
+            feedback.className = 'text-sm h-5 mt-2 text-red-600';
+        }
+    }
+
+    // --- Module 4 ---
+    function checkMeaning() {
+        const input = document.getElementById('meaning-input');
+        const feedback = document.getElementById('meaning-feedback');
+        if (input.value === '8') {
+            feedback.textContent = 'Parfait !';
+            feedback.className = 'text-sm h-5 mt-2 text-green-600';
+            setTimeout(() => changeScreen(9), 1000);
+        } else {
+            feedback.textContent = 'Regarde bien le résultat que nous avons trouvé pour x.';
+            feedback.className = 'text-sm h-5 mt-2 text-red-600';
+        }
+    }
+
+    function checkFinalAnswer() {
+        const input = document.getElementById('final-answer-input');
+        const feedback = document.getElementById('final-answer-feedback');
+        if (input.value === '7') {
+            feedback.textContent = 'Félicitations ! Tu as résolu le problème de Rachelle !';
+            feedback.className = 'text-sm h-5 text-green-600';
+            setTimeout(() => changeScreen(10), 1500);
+        } else if (input.value === '8') {
+             feedback.textContent = "Attention, Rachelle est aussi une personne ! Sur les 8 tickets, un est pour elle.";
+             feedback.className = 'text-sm h-5 text-amber-600';
+        } else {
+            feedback.textContent = "Ce n'est pas ça. Si Rachelle a 8 tickets et qu'elle en prend un, combien en reste-t-il ?";
+            feedback.className = 'text-sm h-5 text-red-600';
+        }
+    }
+
+    // --- Modals ---
+    function toggleVocab(show) {
+        document.getElementById('vocab-modal').classList.toggle('hidden', !show);
+    }
+    function toggleAssistant(show) {
+        document.getElementById('assistant-modal').classList.toggle('hidden', !show);
+    }
+
+    // --- Assistant API ---
+    async function askAssistant() {
+        const input = document.getElementById('chat-input');
+        const chatLog = document.getElementById('chat-log');
+        const sendBtn = document.getElementById('chat-send-btn');
+        const userQuestionRaw = input.value.trim();
+
+        if (userQuestionRaw === '') return;
+        
+        sendBtn.disabled = true;
+        sendBtn.textContent = '...';
+
+        const userMessage = document.createElement('div');
+        userMessage.classList.add('flex', 'justify-end');
+        userMessage.innerHTML = `<div class="p-3 bg-slate-200 text-slate-800 rounded-lg max-w-xs"><p>${userQuestionRaw}</p></div>`;
+        chatLog.appendChild(userMessage);
+        const questionForApi = userQuestionRaw;
+        input.value = '';
+        chatLog.scrollTop = chatLog.scrollHeight;
+
+        const assistantThinking = document.createElement('div');
+        assistantThinking.innerHTML = `<div class="p-3 bg-sky-100 text-sky-800 rounded-lg max-w-xs"><p class="animate-pulse">...</p></div>`;
+        chatLog.appendChild(assistantThinking);
+        chatLog.scrollTop = chatLog.scrollHeight;
+
+        const langSelect = document.getElementById('language-select');
+        const targetLanguage = langSelect.value;
+
+        const systemPrompt = `Tu es un assistant pédagogique pour des élèves allophones (niveau A2) qui apprennent à résoudre une équation du premier degré.
+        Le problème est le suivant: "Rachelle a un budget de 80€. Un ticket de cinéma coûte 6€. Elle achète 4 paquets de popcorn à 8€ pièce. Le coût du popcorn est donc de 32€. L'équation pour trouver le nombre de tickets (x) est 6x + 32 = 80".
+        Ton rôle est d'aider l'élève SANS donner la réponse finale.
+        - Réponds TOUJOURS en français simple d'abord. Ta réponse en français doit être complète et pédagogique.
+        - Explique les concepts (budget, inconnue, équation, multiplication, opération inverse, etc.) de manière simple.
+        - Si l'élève est bloqué, guide-le en lui posant une question pour l'aider à réfléchir.
+        - Après ta réponse en français, ajoute un séparateur '---'.
+        - Ensuite, traduis ta réponse française dans la langue suivante : ${targetLanguage}.
+        - Ta réponse finale DOIT respecter ce format : [Réponse en français]\n---\n[Traduction dans la langue cible]`;
+
+        const apiKey = "";
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+
+        try {
+            const response = await fetch(apiUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: questionForApi }] }],
+                    systemInstruction: { parts: [{ text: systemPrompt }] },
+                })
+            });
+
+            if (!response.ok) throw new Error(`API error: ${response.status}`);
+
+            const result = await response.json();
+            const textResponse = result.candidates?.[0]?.content?.parts?.[0]?.text;
+
+            if (!textResponse) throw new Error("No content in API response.");
+
+            const parts = textResponse.split('---');
+            const frenchPart = parts[0]?.trim();
+            const translatedPart = parts[1]?.trim();
+            
+            let responseHTML = '';
+            if (frenchPart) {
+                const tempDiv = document.createElement('div');
+                tempDiv.textContent = frenchPart;
+                responseHTML += `<p>${tempDiv.innerHTML.replace(/\n/g, '<br>')}</p>`;
+            } else {
+                responseHTML = "<p>Désolé, je n'ai pas pu formuler de réponse.</p>";
+            }
+
+            if (translatedPart) {
+                 const tempDiv = document.createElement('div');
+                 tempDiv.textContent = translatedPart;
+                responseHTML += `<div class="mt-2 p-2 bg-white rounded text-sm"><em>${tempDiv.innerHTML.replace(/\n/g, '<br>')}</em></div>`;
+            }
+            
+            assistantThinking.querySelector('div').innerHTML = responseHTML;
+
+        } catch (error) {
+            console.error("Error calling Gemini API:", error);
+            assistantThinking.querySelector('div').innerHTML = `<p class="text-red-600">Désolé, une erreur de connexion est survenue. Veuillez réessayer.</p>`;
+        } finally {
+            sendBtn.disabled = false;
+            sendBtn.textContent = 'Envoyer';
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+    }
+</script>
+</body>
+</html>
+
