@@ -6,19 +6,26 @@
  */
 
 export default async function handler(req, res) {
+    console.log("Assistant function invoked."); // Log: La fonction a démarré
+
     // On s'assure que la requête est bien de type POST
     if (req.method !== 'POST') {
+        console.warn("Received a non-POST request.");
         return res.status(405).json({ message: 'Only POST requests are allowed' });
     }
 
     const { question, language } = req.body;
+    console.log(`Received question: "${question}", language: "${language}"`); // Log: On montre la question reçue
 
     // La clé API est récupérée depuis les variables d'environnement du serveur.
     // Elle n'est JAMAIS visible côté client.
     const apiKey = process.env.GEMINI_API_KEY;
 
     if (!apiKey) {
+        console.error("GEMINI_API_KEY not found in environment variables."); // Erreur critique
         return res.status(500).json({ message: 'API key is not configured on the server.' });
+    } else {
+        console.log("Successfully found GEMINI_API_KEY."); // Succès: La clé est trouvée
     }
 
     // Le "system prompt" est défini ici, sur le serveur, pour plus de sécurité.
@@ -35,6 +42,7 @@ export default async function handler(req, res) {
     const googleApiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
 
     try {
+        console.log("Sending request to Google API..."); // Log: On envoie la requête à Google
         const googleResponse = await fetch(googleApiUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -45,17 +53,19 @@ export default async function handler(req, res) {
         });
 
         if (!googleResponse.ok) {
-            console.error('Google API Error:', await googleResponse.text());
+            const errorText = await googleResponse.text();
+            console.error('Google API Error:', errorText); // Log: On montre l'erreur précise de Google
             throw new Error(`Google API responded with status ${googleResponse.status}`);
         }
 
         const result = await googleResponse.json();
+        console.log("Successfully received response from Google API."); // Log: Succès de la réponse
         
         // On renvoie la réponse de Google au navigateur de l'élève.
         res.status(200).json(result);
 
     } catch (error) {
-        console.error("Error in serverless function:", error);
+        console.error("Error in serverless function catch block:", error.message); // Log: Autre erreur
         res.status(500).json({ message: "An error occurred while contacting the AI assistant." });
     }
 }
